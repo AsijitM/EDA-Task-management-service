@@ -25,7 +25,7 @@ const run = async () => {
         secure: true,
         auth: {
           user: "otherwork6969@gmail.com",
-          pass: "ryhe ofjh bsny ifpr",
+          pass: process.env.STMP_CODE
         },
       });
 

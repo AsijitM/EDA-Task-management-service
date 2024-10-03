@@ -1,4 +1,45 @@
 
+
+
+In this setup, only **one** queue will be created for the **Notification Service**, even if multiple users simultaneously trigger task creation events. Here’s how it works:
+
+### Explanation of Queue Behavior
+
+1. **Single Queue Creation**:
+   - When the **Notification Service** starts and runs the `run` function, it creates a single, exclusive queue (with a unique name) that is bound to the `task_events` exchange.
+   - This queue will remain active for the duration of the connection to RabbitMQ. Once the connection is closed, the queue will be deleted.
+
+2. **Message Broadcasting**:
+   - The `fanout` exchange is designed to broadcast messages to all queues bound to it. Since there's only one queue bound to the `task_events` exchange in the **Notification Service**, all task creation events will be sent to that single queue.
+   - If multiple users trigger task creation events simultaneously, all those events will be sent to the same queue.
+
+3. **Message Handling**:
+   - The **Notification Service** consumes messages from that single queue. If multiple messages arrive (e.g., from different users creating tasks), they will be queued up in that single queue.
+   - The consumer (Notification Service) processes each message one at a time, even if they were published simultaneously. If the service is processing a previous message, subsequent messages will wait in the queue until the service is ready to process them.
+
+### Example Scenario
+
+- **User A** creates a task at the same time as **User B**.
+- Both actions trigger the **Task Service** to publish messages to the `task_events` exchange.
+- Both messages are sent to the single queue in the **Notification Service**.
+- The Notification Service consumes and processes the messages one by one, sending email notifications accordingly.
+
+### Summary
+
+In this architecture:
+- **Only one queue** is created for the Notification Service.
+- **All messages** from multiple task creation events will go into that single queue.
+- **Messages are processed sequentially**, maintaining order and ensuring that no messages are lost.
+
+If you have any further questions or need more clarification, feel free to ask!
+
+
+
+
+
+
+
+
 ### Overall Flow of the Task Management System
 
 1. **User Registration**:
